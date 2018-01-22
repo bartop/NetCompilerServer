@@ -11,9 +11,10 @@ import subprocess
 
 TEMP_DIR = './compilations/'
 OUT_DIR = './output/'
-COMPILER = 'gcc'
+COMPILER = 'g++'
 SED = 'sed'
 OUTPUT_FILENAME = 'output.exe' if os.name == 'nt' else 'output'
+COMPILABLE_EXTS = ['.cpp', '.cxx', '.c', '.cc']
 
 def create_file_with_path(path_to_file):
     if not os.path.exists(os.path.dirname(path_to_file)):
@@ -66,11 +67,12 @@ def get_dependencies(req):
 
 def compile(req):
     paths = [TEMP_DIR + file['path'] for file in req.get_json()['files']]
+    paths_to_compilable = [path for path in paths if os.path.splitext(path)[1] in COMPILABLE_EXTS]
     output_args = ['-o', OUT_DIR + OUTPUT_FILENAME]
     compilation_output = None
     try:
         compilation_output = subprocess.check_output(
-            [COMPILER] + paths + [arg for arg in req.get_json()['options']] + output_args,
+            [COMPILER] + paths_to_compilable + [arg for arg in req.get_json()['options']] + output_args,
             stderr=subprocess.STDOUT
         )
     except subprocess.CalledProcessError as e:
